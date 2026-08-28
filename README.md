@@ -86,6 +86,12 @@ If the selected provider fails — rate limits, session or usage caps, timeouts,
 - **Empty or garbage message.** Enable `cliCommit.debug`, then check **View → Output → CLI Commit**.
 - **Authentication.** Run `claude -p "hello"` or `codex exec "hello"` in a terminal first.
 
+## Credits
+
+The initial Claudesona fan art was by [thebes](https://github.com/vgel).
+
+This project is unofficial and is not affiliated with Anthropic, OpenAI, or Google.
+
 ## Licence
 
 MIT

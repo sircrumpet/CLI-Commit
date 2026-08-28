@@ -5,6 +5,7 @@
   "version": "0.1.0",
   "publisher": "eugeneturner",
   "license": "MIT",
+  "icon": "images/icon.png",
   "homepage": "https://github.com/sircrumpet/CLI-Commit#readme",
   "repository": {
     "type": "git",
