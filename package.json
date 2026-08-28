@@ -1,0 +1,180 @@
+{
+  "name": "cli-commit",
+  "displayName": "CLI Commit",
+  "description": "Generate git commit messages from the Source Control sparkle using Claude CLI or Codex.",
+  "version": "0.1.0",
+  "publisher": "eugeneturner",
+  "license": "MIT",
+  "homepage": "https://github.com/sircrumpet/CLI-Commit#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sircrumpet/CLI-Commit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sircrumpet/CLI-Commit/issues"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "SCM Providers",
+    "Other"
+  ],
+  "keywords": [
+    "git",
+    "commit",
+    "claude",
+    "codex",
+    "commit-message"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "extensionDependencies": [
+    "vscode.git"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "cli-commit.generate",
+        "title": "Generate Commit Message",
+        "category": "CLI Commit",
+        "icon": "$(sparkle)"
+      }
+    ],
+    "menus": {
+      "scm/inputBox": [
+        {
+          "command": "cli-commit.generate",
+          "when": "scmProvider == git"
+        }
+      ],
+      "scm/title": [
+        {
+          "command": "cli-commit.generate",
+          "when": "scmProvider == git",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "cli-commit.generate"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "CLI Commit",
+      "properties": {
+        "cliCommit.provider": {
+          "type": "string",
+          "enum": [
+            "claude",
+            "codex"
+          ],
+          "enumDescriptions": [
+            "Anthropic Claude Code CLI (`claude -p`)",
+            "OpenAI Codex CLI (`codex exec`)"
+          ],
+          "default": "claude",
+          "description": "Which CLI generates the commit message."
+        },
+        "cliCommit.claudeModel": {
+          "type": "string",
+          "enum": [
+            "opus",
+            "sonnet",
+            "haiku"
+          ],
+          "enumDescriptions": [
+            "Claude Opus",
+            "Claude Sonnet",
+            "Claude Haiku"
+          ],
+          "default": "sonnet",
+          "description": "Claude CLI model alias when the provider is Claude."
+        },
+        "cliCommit.codexModel": {
+          "type": "string",
+          "enum": [
+            "sol",
+            "terra",
+            "luna"
+          ],
+          "enumDescriptions": [
+            "GPT-5.6 Sol (gpt-5.6-sol)",
+            "GPT-5.6 Terra (gpt-5.6-terra)",
+            "GPT-5.6 Luna (gpt-5.6-luna)"
+          ],
+          "default": "terra",
+          "description": "Codex CLI model tier when the provider is Codex."
+        },
+        "cliCommit.effort": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "default": "low",
+          "description": "Reasoning effort passed to the selected CLI."
+        },
+        "cliCommit.instructions": {
+          "type": "string",
+          "default": "",
+          "scope": "resource",
+          "editPresentation": "multilineText",
+          "description": "Optional extra instructions appended to the system prompt (commit style, ticket prefixes, language). Set this in the workspace for repo-specific conventions."
+        },
+        "cliCommit.recentCommitCount": {
+          "type": "number",
+          "default": 8,
+          "minimum": 0,
+          "maximum": 30,
+          "description": "How many recent commit subjects to include so the model can match this repository's style."
+        },
+        "cliCommit.fallbackToUnstaged": {
+          "type": "boolean",
+          "default": true,
+          "description": "If nothing is staged, generate from the unstaged working tree diff instead."
+        },
+        "cliCommit.fallbackToOtherProvider": {
+          "type": "boolean",
+          "default": true,
+          "description": "If the selected CLI fails (rate limits, session limits, outages, missing binary), automatically try the other one."
+        },
+        "cliCommit.timeoutSeconds": {
+          "type": "number",
+          "default": 90,
+          "minimum": 15,
+          "maximum": 300,
+          "description": "How long to wait for the CLI before cancelling."
+        },
+        "cliCommit.claudePath": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to the Claude CLI. Leave empty to auto-detect."
+        },
+        "cliCommit.codexPath": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to the Codex CLI. Leave empty to auto-detect."
+        },
+        "cliCommit.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Log prompts, commands, and raw CLI output to the CLI Commit output channel."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "tsc --noEmit -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^22.17.0",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.9.2"
+  }
+}
