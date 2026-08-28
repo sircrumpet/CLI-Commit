@@ -3,15 +3,10 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { resolveBinary, runProcess } from './cli';
-import { CodexModel, ExtensionConfig } from './config';
+import { ExtensionConfig } from './config';
 import { Logger } from './logger';
+import { resolveCodexModel } from './models';
 import { extractCommitMessage } from './parse';
-
-const CODEX_MODELS: Record<CodexModel, string> = {
-  sol: 'gpt-5.6-sol',
-  terra: 'gpt-5.6-terra',
-  luna: 'gpt-5.6-luna',
-};
 
 export async function generateWithCodex(
   prompt: string,
@@ -22,7 +17,7 @@ export async function generateWithCodex(
 ): Promise<string> {
   const binary = await resolveBinary('codex', config.codexPath, logger);
   const lastMessagePath = path.join(os.tmpdir(), `cli-commit-${process.pid}-${Date.now()}.txt`);
-  const model = CODEX_MODELS[config.codexModel] ?? config.codexModel;
+  const model = await resolveCodexModel(config.codexModel);
 
   const args = [
     'exec',
@@ -34,8 +29,7 @@ export async function generateWithCodex(
     '--skip-git-repo-check',
     '--color',
     'never',
-    '-m',
-    model,
+    ...(model ? ['-m', model] : []),
     '-C',
     repoPath,
     '-c',
@@ -46,6 +40,10 @@ export async function generateWithCodex(
     lastMessagePath,
     '-',
   ];
+
+  if (!model) {
+    logger.debug('No Codex model configured; letting the CLI pick its default.');
+  }
 
   logger.debug(`codex ${args.join(' ')}`);
   logger.debug(`cwd: ${repoPath}`);

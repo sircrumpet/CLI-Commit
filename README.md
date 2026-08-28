@@ -3,7 +3,7 @@
 A VS Code extension that adds a ✨ sparkle next to the Git commit message box. Click it to generate a commit message from your staged diff using the **Claude CLI** or **Codex CLI** you already have installed — no extra API keys.
 
 - Sparkle on the Source Control commit field
-- Claude or Codex, with a choice of model (Opus / Sonnet / Sol / Terra / …)
+- Claude or Codex, with any model the CLI accepts — no fixed list to go stale
 - Recent commits included so the model can match this repository's style
 - Optional workspace instructions in the system prompt for repo-specific conventions
 - Tools, MCP servers, and skills disabled so the call stays cheap and non-interactive
@@ -26,6 +26,24 @@ A VS Code extension that adds a ✨ sparkle next to the Git commit message box. 
 
 You can also run **CLI Commit: Generate Commit Message** from the Command Palette.
 
+## Choosing a model
+
+Both model settings are free text passed straight to the CLI, so a new model never needs an
+extension update. Run **CLI Commit: Select Model** from the Command Palette to pick one for the
+active provider; it writes your choice to user settings and always offers a custom-id entry.
+
+For Claude, prefer the aliases `haiku`, `sonnet`, `opus`, and `fable`: the CLI resolves each to
+the latest model of that tier, so they never go stale. Full names like `claude-fable-5` work too.
+
+For Codex, the picker reads `models_cache.json` from `$CODEX_HOME` (or `~/.codex`), the registry
+the Codex CLI itself refreshes from the server — so new models appear without an extension
+release. If that file is missing the picker falls back to a short built-in list.
+
+`cliCommit.codexModel` takes a full id such as `gpt-5.6-terra`. Left empty (the default) the
+extension reads the top-level `model` key from `config.toml`, and if that is unset omits `-m`
+entirely so the CLI picks its own default. The old `sol` / `terra` / `luna` shorthands still
+resolve, for settings written before 0.2.0.
+
 For repo-specific style, set `cliCommit.instructions` in that workspace's `.vscode/settings.json`. It is appended to the system prompt and wins over matching recent-commit style when they conflict:
 
 ```json
@@ -36,27 +54,27 @@ For repo-specific style, set `cliCommit.instructions` in that workspace's `.vsco
 
 ## Settings
 
-| Setting                             | Default   | Purpose                                                  |
-| ----------------------------------- | --------- | -------------------------------------------------------- |
-| `cliCommit.provider`                | `claude`  | `claude` or `codex`                                      |
-| `cliCommit.claudeModel`             | `sonnet`  | `opus`, `sonnet`, or `haiku`                             |
-| `cliCommit.codexModel`              | `terra`   | `sol`, `terra`, or `luna` (`gpt-5.6-*`)                  |
-| `cliCommit.effort`                  | `low`     | Reasoning effort for the selected CLI                    |
-| `cliCommit.instructions`            | _(empty)_ | Extra system-prompt instructions (workspace-overridable) |
-| `cliCommit.recentCommitCount`       | `8`       | Recent commit subjects included for style                |
-| `cliCommit.fallbackToUnstaged`      | `true`    | Use the working tree diff when nothing is staged         |
-| `cliCommit.fallbackToOtherProvider` | `true`    | If Claude fails, try Codex (and the reverse)             |
-| `cliCommit.timeoutSeconds`          | `90`      | How long to wait for the CLI                             |
-| `cliCommit.claudePath`              | _(auto)_  | Absolute path if VS Code cannot see `claude`             |
-| `cliCommit.codexPath`               | _(auto)_  | Absolute path if VS Code cannot see `codex`              |
-| `cliCommit.debug`                   | `false`   | Log prompts and raw CLI output                           |
+| Setting                             | Default   | Purpose                                                          |
+| ----------------------------------- | --------- | ---------------------------------------------------------------- |
+| `cliCommit.provider`                | `claude`  | `claude` or `codex`                                              |
+| `cliCommit.claudeModel`             | `sonnet`  | Alias or full name for `claude --model`; empty = CLI default     |
+| `cliCommit.codexModel`              | _(empty)_ | Model id for `codex -m`; empty = `config.toml`, then CLI default |
+| `cliCommit.effort`                  | `low`     | Reasoning effort for the selected CLI                            |
+| `cliCommit.instructions`            | _(empty)_ | Extra system-prompt instructions (workspace-overridable)         |
+| `cliCommit.recentCommitCount`       | `8`       | Recent commit subjects included for style                        |
+| `cliCommit.fallbackToUnstaged`      | `true`    | Use the working tree diff when nothing is staged                 |
+| `cliCommit.fallbackToOtherProvider` | `true`    | If Claude fails, try Codex (and the reverse)                     |
+| `cliCommit.timeoutSeconds`          | `90`      | How long to wait for the CLI                                     |
+| `cliCommit.claudePath`              | _(auto)_  | Absolute path if VS Code cannot see `claude`                     |
+| `cliCommit.codexPath`               | _(auto)_  | Absolute path if VS Code cannot see `codex`                      |
+| `cliCommit.debug`                   | `false`   | Log prompts and raw CLI output                                   |
 
 ## How the CLIs are invoked
 
 ### Claude
 
 ```text
-claude -p --output-format json --model <alias> --effort <level>
+claude -p --output-format json [--model <alias>] --effort <level>
   --tools "" --restricted --strict-mcp-config --mcp-config '{"mcpServers":{}}'
   --setting-sources "" --disable-slash-commands --no-session-persistence
   --no-chrome --permission-mode dontAsk --system-prompt "<commit-message writer>"
@@ -71,12 +89,14 @@ The parser reads the commit text from Claude's JSON `result` field, including wh
 ```text
 codex exec --sandbox read-only --ephemeral --ignore-user-config
   --ignore-rules --skip-git-repo-check --color never
-  -m gpt-5.6-<sol|terra|luna> -C <repo>
+  [-m <model>] -C <repo>
   -c model_reasoning_effort="<level>" -c mcp_servers={}
   -o <tempfile> -
 ```
 
-`--ignore-user-config` skips MCP servers from `~/.codex/config.toml` while still using stored auth. The sandbox is read-only. The last agent message is read from `-o`.
+`--ignore-user-config` skips MCP servers from `~/.codex/config.toml` while still using stored auth.
+Because that also discards your default model, the extension reads the `model` key back out of
+that file when `cliCommit.codexModel` is empty. The sandbox is read-only. The last agent message is read from `-o`.
 
 If the selected provider fails — rate limits, session or usage caps, timeouts, a missing binary — the extension automatically tries the other CLI. Cancel stays cancel. Turn this off with `cliCommit.fallbackToOtherProvider`.
 

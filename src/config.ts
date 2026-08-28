@@ -1,14 +1,12 @@
 import * as vscode from 'vscode';
 
 export type ProviderId = 'claude' | 'codex';
-export type ClaudeModel = 'opus' | 'sonnet' | 'haiku';
-export type CodexModel = 'sol' | 'terra' | 'luna';
 export type Effort = 'low' | 'medium' | 'high';
 
 export interface ExtensionConfig {
   provider: ProviderId;
-  claudeModel: ClaudeModel;
-  codexModel: CodexModel;
+  claudeModel: string;
+  codexModel: string;
   effort: Effort;
   recentCommitCount: number;
   instructions: string;
@@ -26,8 +24,8 @@ export function loadConfig(resource?: vscode.Uri): ExtensionConfig {
 
   return {
     provider: cfg.get<ProviderId>('provider') ?? 'claude',
-    claudeModel: cfg.get<ClaudeModel>('claudeModel') ?? 'sonnet',
-    codexModel: cfg.get<CodexModel>('codexModel') ?? 'terra',
+    claudeModel: (cfg.get<string>('claudeModel') ?? 'sonnet').trim(),
+    codexModel: (cfg.get<string>('codexModel') ?? '').trim(),
     effort: cfg.get<Effort>('effort') ?? 'low',
     recentCommitCount: clampNumber(cfg.get<number>('recentCommitCount'), 0, 30, 8),
     instructions: (cfg.get<string>('instructions') ?? '').trim(),

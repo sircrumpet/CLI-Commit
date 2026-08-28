@@ -3,6 +3,7 @@ import { loadConfig } from './config';
 import { generateCommitMessage, providerLabel } from './generate';
 import { collectGitContext } from './git';
 import { Logger } from './logger';
+import { selectModel } from './selectModel';
 
 interface GitExtension {
   getAPI(version: 1): GitAPI;
@@ -78,7 +79,17 @@ export function activate(context: vscode.ExtensionContext): void {
     }
   });
 
-  context.subscriptions.push(disposable, channel);
+  const selectModelCommand = vscode.commands.registerCommand('cli-commit.selectModel', async () => {
+    try {
+      await selectModel();
+    } catch (error) {
+      const text = error instanceof Error ? error.message : String(error);
+      logger.error(text);
+      vscode.window.showErrorMessage(`CLI Commit: ${text}`);
+    }
+  });
+
+  context.subscriptions.push(disposable, selectModelCommand, channel);
 }
 
 export function deactivate(): void {}

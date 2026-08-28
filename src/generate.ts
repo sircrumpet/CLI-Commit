@@ -73,7 +73,8 @@ async function runProvider(
 }
 
 export function providerLabel(provider: ProviderId, config: ExtensionConfig): string {
-  return provider === 'codex' ? `Codex (${config.codexModel})` : `Claude (${config.claudeModel})`;
+  const model = provider === 'codex' ? config.codexModel : config.claudeModel;
+  return model ? `${shortName(provider)} (${model})` : `${shortName(provider)} (CLI default)`;
 }
 
 function otherProvider(provider: ProviderId): ProviderId {

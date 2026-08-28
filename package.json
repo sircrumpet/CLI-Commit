@@ -40,6 +40,11 @@
         "title": "Generate Commit Message",
         "category": "CLI Commit",
         "icon": "$(sparkle)"
+      },
+      {
+        "command": "cli-commit.selectModel",
+        "title": "Select Model",
+        "category": "CLI Commit"
       }
     ],
     "menus": {
@@ -59,6 +64,9 @@
       "commandPalette": [
         {
           "command": "cli-commit.generate"
+        },
+        {
+          "command": "cli-commit.selectModel"
         }
       ]
     },
@@ -80,33 +88,13 @@
         },
         "cliCommit.claudeModel": {
           "type": "string",
-          "enum": [
-            "opus",
-            "sonnet",
-            "haiku"
-          ],
-          "enumDescriptions": [
-            "Claude Opus",
-            "Claude Sonnet",
-            "Claude Haiku"
-          ],
           "default": "sonnet",
-          "description": "Claude CLI model alias when the provider is Claude."
+          "markdownDescription": "Model passed to `claude --model`. Aliases (`haiku`, `sonnet`, `opus`, `fable`) always resolve to the latest model of that tier, so they never go stale; a full name such as `claude-fable-5` also works. Leave empty to omit the flag and use the CLI's own default. Run **CLI Commit: Select Model** to pick from a list."
         },
         "cliCommit.codexModel": {
           "type": "string",
-          "enum": [
-            "sol",
-            "terra",
-            "luna"
-          ],
-          "enumDescriptions": [
-            "GPT-5.6 Sol (gpt-5.6-sol)",
-            "GPT-5.6 Terra (gpt-5.6-terra)",
-            "GPT-5.6 Luna (gpt-5.6-luna)"
-          ],
-          "default": "terra",
-          "description": "Codex CLI model tier when the provider is Codex."
+          "default": "",
+          "markdownDescription": "Model passed to `codex -m`, e.g. `gpt-5.6-terra`. Leave empty to fall back to the `model` key in your `~/.codex/config.toml`, and then to the CLI's own default. Run **CLI Commit: Select Model** to pick from a list."
         },
         "cliCommit.effort": {
           "type": "string",
